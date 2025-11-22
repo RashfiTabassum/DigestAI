@@ -1,0 +1,345 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b3851d1d-5a4a-4113-96e9-2630a223e740",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -48,
+        -48
+      ],
+      "id": "74b9e6e6-a5fb-4458-8ac0-3f66caf581c1",
+      "name": "Webhook",
+      "webhookId": "b3851d1d-5a4a-4113-96e9-2630a223e740"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a conversational assistant.\n\nYou receive:\n- user_query → {{ $json.body.user_query }}\n- session_id → {{ $json.body.session_id }}\n\nYour job:\n1. If the user has NOT provided both:\n   - email\n   - article URL  \n   → then ask for the missing information in a friendly, conversational way.\n   Do NOT call any tools until you have both.\n\n2. Once you have BOTH email and article URL in the conversation memory:\n   a. Use http_request to fetch article content.\n   b. Summarize it in 3–5 sentences.\n   c. Extract 3–5 insights.\n   d. Use append_in_sheet to save:\n      - session_id\n      - email\n      - article_url\n      - summary\n      - insights\n   e. Use send_mail to send summary + insights to the user.\n\n3. After sending the email, reply to the chat with a SHORT confirmation message.\n\nRules:\n- Never assume missing values. Always ask.\n- Only run tools when both email and article URL exist in the context.\n- Keep responses friendly, short, natural.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        144,
+        -48
+      ],
+      "id": "56c30722-2867-4751-a6ce-e7028a3b4885",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.session_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        256
+      ],
+      "id": "c7dd6bf9-d34a-4990-b3d4-b589e81b0ffe",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $fromAI(\"Email\") }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        272
+      ],
+      "id": "640c6804-9acc-46ec-953b-38062c054343",
+      "name": "send_mail",
+      "webhookId": "79d8e1c9-f5cb-41cc-a392-5489596aa006",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6VnSHafEJUy8ATkl",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $fromAI(\"Article_URL\") }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        368,
+        304
+      ],
+      "id": "4a6902a3-65af-4fe0-bd3a-c38ac00dbb1b",
+      "name": "http_request"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1cjAE57a4H7W4XNi1_LoNwL15Tpi7Vzf0UewPUhzX5M4",
+          "mode": "list",
+          "cachedResultName": "article summary",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cjAE57a4H7W4XNi1_LoNwL15Tpi7Vzf0UewPUhzX5M4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cjAE57a4H7W4XNi1_LoNwL15Tpi7Vzf0UewPUhzX5M4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Session ID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', ``, 'string') }}",
+            "Article URL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Article_URL', ``, 'string') }}",
+            "Summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}",
+            "Insights": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Insights', ``, 'string') }}",
+            "Email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Session ID",
+              "displayName": "Session ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Article URL",
+              "displayName": "Article URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Insights",
+              "displayName": "Insights",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        544,
+        272
+      ],
+      "id": "0fa14e36-1197-41db-b89b-6f58d223ee44",
+      "name": "append_in_sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yWK7HwROT0sXGHbj",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        80,
+        224
+      ],
+      "id": "48eddad4-739f-4b2c-9a86-74a1e0a3fc01",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "WQnd9Na8potOz3EO",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        528,
+        -48
+      ],
+      "id": "6ea80b97-c404-42e4-8bbc-5cd48071dace",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "rashfi.app.n8n.cloud",
+            "user-agent": "python-httpx/0.25.1",
+            "content-length": "175",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "103.166.186.23",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "BD",
+            "cf-ray": "9a2a4e98e4f4f655-CCU",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "103.166.186.23, 172.68.127.206",
+            "x-forwarded-host": "rashfi.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-91-f8b669df6-68mfk",
+            "x-is-trusted": "yes",
+            "x-real-ip": "103.166.186.23"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "user_query": "email address: rashfitabassum@gmail.com\narticle url: https://jamesclear.com/five-step-creative-process",
+            "session_id": "467732ab-fdf1-438d-ade2-64b663d1a3af"
+          },
+          "webhookUrl": "https://rashfi.app.n8n.cloud/webhook/b3851d1d-5a4a-4113-96e9-2630a223e740",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send_mail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "http_request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "append_in_sheet": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8b46af64-fcc1-4a52-82ab-34e62a02c935",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fb1e70cc5dfb3851097ca1a4af513d691836d324231a8793d5f363c243ed68e1"
+  },
+  "id": "djnu1JFj76gznboM",
+  "tags": []
+}
